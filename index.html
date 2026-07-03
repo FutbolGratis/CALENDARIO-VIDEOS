@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎬 Planificador de Videos - 7 Días</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+  
+  :root {
+    --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    --card-bg: rgba(255, 255, 255, 0.08);
+    --card-border: rgba(255, 255, 255, 0.15);
+    --accent: #e94560;
+    --accent-2: #f39c12;
+    --success: #00d9a3;
+    --text: #ffffff;
+    --text-dim: #b8c1d6;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  body.light {
+    --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #e8edf5 50%, #dce5f2 100%);
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(0, 0, 0, 0.08);
+    --text: #1a1a2e;
+    --text-dim: #5a6478;
+    --shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  body {
+    min-height: 100vh;
+    background: var(--bg-gradient);
+    color: var(--text);
+    padding: 20px;
+    transition: all 0.4s ease;
+    overflow-x: hidden;
+  }
+  
+  /* Fondo animado */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(233, 69, 96, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(243, 156, 18, 0.08) 0%, transparent 50%);
+    animation: float 20s ease-in-out infinite;
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(-5%, 5%) rotate(180deg); }
+  }
+  
+  .container { max-width: 1400px; margin: 0 auto; }
+  
+  /* HEADER */
+  header {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .header-title h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+    font-weight: 800;
+  }
+  
+  .header-title p { color: var(--text-dim); font-size: 0.95rem; }
+  
+  .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  
+  .btn {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .btn:hover {
+    transform: translateY(-2px);
+    background: rgba(233, 69, 96, 0.2);
+    border-color: var(--accent);
+  }
+  
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent-2), var(--accent));
+    box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
+  }
+  
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 22px 28px;
+    margin-bottom: 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+    box-shadow: var(--shadow);
+  }
+  
+  .stat-item { text-align: center; }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label { color: var(--text-dim); font-size: 0.85rem; margin-top: 4px; }
+  
+  .progress-global {
+    grid-column: 1 / -1;
+    padding-top: 12px;
+    border-top: 1px solid var(--card-border);
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  .progress-bar {
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--success));
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  
+  /* FILTROS */
+  .filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .filter-chip {
+    padding: 8px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+    color: var(--text);
+  }
+  .filter-chip.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent;
+  }
+  
+  /* GRID DE DÍAS */
+  .days-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  
+  .day-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  
+  .day-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+  }
+  
+  .day-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--accent);
+    box-shadow: 0 12px 40px rgba(233, 69, 96, 0.2);
+  }
+  .day-card:hover::before { transform: scaleX(1); }
+  
+  .day-card.completed {
+    background: linear-gradient(135deg, rgba(0, 217, 163, 0.15), rgba(0, 217, 163, 0.05));
+    border-color: var(--success);
+  }
+  
+  .day-card.completed::before {
+    background: var(--success);
+    transform: scaleX(1);
+  }
+  
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  
+  .day-info { flex: 1; }
+  .day-number {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .day-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .day-emoji {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  
+  .day-complete-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--card-border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: transparent;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  
+  .day-complete-btn:hover {
+    border-color: var(--success);
+    transform: scale(1.1);
+  }
+  
+  .day-complete-btn.checked {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+    animation: pop 0.4s ease;
+  }
+  
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+  }
+  
+  .day-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--card-border);
+  }
+  
+  .day-progress-text { font-size: 0.85rem; color: var(--text-dim); }
+  .day-progress-text strong { color: var(--text); font-size: 1rem; }
+  
+  .day-mini-progress {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    margin: 0 12px;
+    overflow: hidden;
+  }
+  .day-mini-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    border-radius: 6px;
+    transition: width 0.5s ease;
+  }
+  
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+  }
+  .modal-overlay.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  
+  .modal {
+    background: var(--bg-gradient);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px;
+    position: relative;
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .modal::-webkit-scrollbar { width: 8px; }
+  .modal::-webkit-scrollbar-track { background: transparent; }
+  .modal::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 4px; }
+  
+  .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 2;
+  }
+  .modal-close:hover {
+    background: var(--accent);
+    transform: rotate(90deg);
+  }
+  
+  .modal-header {
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .modal-header h2 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .modal-header p { color: var(--text-dim); }
+  
+  .video-item {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+  .video-item:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+  }
+  .video-item.completed {
+    background: linear-gradient(135deg, rgba(0, 217, 163, 0.1), transparent);
+    border-color: var(--success);
+  }
+  
+  .video-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  
+  .video-title-block { flex: 1; }
+  .video-number {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 4px;
+  }
+  .video-text-on-screen {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .video-full-title {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+  
+  .video-check {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 2px solid var(--card-border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: transparent;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .video-check:hover {
+    border-color: var(--success);
+    transform: scale(1.05);
+  }
+  .video-check.checked {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+    animation: pop 0.4s ease;
+  }
+  
+  .clips-container {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--card-border);
+  }
+  
+  .clip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    margin-bottom: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .clip-item:hover { background: rgba(255, 255, 255, 0.06); }
+  .clip-item.completed { opacity: 0.6; }
+  .clip-item.completed .clip-text { text-decoration: line-through; }
+  
+  .clip-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--card-border);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: transparent;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .clip-check.checked {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+  
+  .clip-text {
+    flex: 1;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+  
+  .clip-counter {
+    font-size: 0.75rem;
+    color: var(--accent);
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  
+  /* NOTAS */
+  .notes-section {
+    margin-top: 20px;
+    padding: 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+  }
+  .notes-section label {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .notes-section textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 60px;
+  }
+  .notes-section textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  
+  /* CONFETTI */
+  .confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    pointer-events: none;
+    z-index: 1000;
+    animation: confettiFall 3s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+  
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, var(--success), #00b894);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 217, 163, 0.4);
+    transform: translateX(400px);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 200;
+    font-weight: 600;
+  }
+  .toast.show { transform: translateX(0); }
+  
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    header { padding: 20px; }
+    .header-title h1 { font-size: 1.5rem; }
+    .modal { padding: 20px; }
+    .modal-header h2 { font-size: 1.4rem; }
+    .day-name { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  
+  <header>
+    <div class="header-title">
+      <h1>🎬 Planificador de Videos</h1>
+      <p>Organiza tus 7 días de contenido • 42 videos en total</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn" onclick="toggleTheme()">🌓 Tema</button>
+      <button class="btn" onclick="exportData()">📤 Exportar</button>
+      <button class="btn" onclick="importData()">📥 Importar</button>
+      <button class="btn btn-primary" onclick="resetAll()">🔄 Reiniciar</button>
+    </div>
+  </header>
+  
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-value" id="statDays">0/7</div>
+      <div class="stat-label">Días Completados</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statVideos">0/42</div>
+      <div class="stat-label">Videos Hechos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statClips">0/120</div>
+      <div class="stat-label">Clips Listos</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="statPercent">0%</div>
+      <div class="stat-label">Progreso Total</div>
+    </div>
+    <div class="progress-global">
+      <div class="progress-label">
+        <span>Progreso General</span>
+        <span id="progressText">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="filters">
+    <div class="filter-chip active" data-filter="all" onclick="setFilter('all')">📋 Todos</div>
+    <div class="filter-chip" data-filter="pending" onclick="setFilter('pending')">⏳ Pendientes</div>
+    <div class="filter-chip" data-filter="inprogress" onclick="setFilter('inprogress')">🔄 En Progreso</div>
+    <div class="filter-chip" data-filter="completed" onclick="setFilter('completed')">✅ Completados</div>
+  </div>
+  
+  <div class="days-grid" id="daysGrid"></div>
+  
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ DATOS (DÍAS REORDENADOS) ============
+// Viernes original → Sábado, Sábado → Domingo, etc.
+const DAYS_DATA = [
+  {
+    id: 'sabado',
+    number: 'DÍA 1',
+    name: 'SÁBADO',
+    emoji: '🌅',
+    videos: [
+      {
+        textOnScreen: '😳 El amor que no se dijo',
+        title: '😳 La mujer que más te amó nunca te lo dijo con palabras',
+        clips: [
+          'La mujer que más te amó no te lo dijo con palabras. Te lo demostró quedándose cuando pudo irse sin mirar atrás.',
+          'Y eso es lo que duele cuando te das cuenta tarde. Que el amor más grande no se escucha, se siente en cada acto.'
+        ]
+      },
+      {
+        textOnScreen: '💭 El llanto que no se ve',
+        title: '💭 Hay un dicho que dice: el que no llora por dentro, llora por fuera',
+        clips: [
+          'Hay un dicho que dice: el que no llora por dentro, termina llorando por fuera. Y hay hombres que lo aprenden a la fuerza.',
+          'Guardar todo, reprimir lo que sientes, no parece tan malo hasta que un día explota sin que puedas controlarlo.',
+          'Y cuando ya es tarde, entiendes que el dolor que no se habla termina siendo el que más peso tiene en la vida.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Las cinco versiones de ella',
+        title: '😳 Dicen que una mujer cambia cinco veces antes de ser quien realmente es',
+        clips: [
+          'Dicen que una mujer cambia cinco veces antes de ser quien realmente es. Cada versión se construye sobre lo que ha vivido.',
+          'La primera es la que ama sin condiciones. Da todo sin esperar nada, porque aún no sabe lo que duele entregarse así.',
+          'La segunda es la que se rompe. Descubre que el amor no siempre vuelve y que hay promesas que nunca se cumplen.',
+          'La tercera es la que se reconstruye. Aprende a estar sola, a poner límites y a valorar su propio tiempo por encima.',
+          'Y la quinta es la que ya no busca. Simplemente vive, y si alguien llega, bien. Y si no, también está completa.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Ya no duele',
+        title: '😳 ¿Sabes qué es lo primero que piensa una mujer cuando ya no te extraña?',
+        clips: [
+          '¿Sabes qué es lo primero que piensa una mujer cuando ya no te extraña? No que te olvidó, sino que ya no necesita de ti.',
+          'Y esa es la diferencia. Una cosa es no recordarte y otra muy distinta es haber aprendido a vivir sin ti.'
+        ]
+      },
+      {
+        textOnScreen: '💭 El primer mes sin ti',
+        title: '💭 Lo que nadie te cuenta del primer mes después de soltar a alguien',
+        clips: [
+          'Lo que nadie te cuenta del primer mes después de soltar a alguien. Duele, sí, pero también empieza a aparecer la paz.',
+          'Lloras lo que no lloraste estando con él. Y cada lágrima se siente como un peso que por fin estás soltando.',
+          'Y al final del mes, entiendes algo que antes no veías: no era amor, era apego. Y soltar eso fue tu mejor decisión.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Lo que me escribió',
+        title: '😳 Una seguidora me escribió algo que no pude ignorar',
+        clips: [
+          'Una seguidora me escribió algo que no pude ignorar. Me dijo: llevo años esperando que él cambie y solo cambio yo.',
+          'Y seguía: un día me cansé de pedir lo mínimo y entendí que el amor no duele cuando es correspondido de verdad.',
+          'Me contó que soltó sin odio. Que ya no le escribió ni para reclamar. Solo se fue y se sintió liviana.',
+          'Y terminó diciendo: no necesito que él me elija. Ya me elegí yo, y eso pesa más que cualquier amor que me haya dado.',
+          'Esa noche entendí que muchas mujeres no se van por falta de amor. Se van porque el amor propio les ganó la batalla.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'domingo',
+    number: 'DÍA 2',
+    name: 'DOMINGO',
+    emoji: '☀️',
+    videos: [
+      {
+        textOnScreen: '😳 Cuando ella deja de explicar',
+        title: '😳 Cuando una mujer deja de explicarse… ya aprendió algo que pocos entienden',
+        clips: [
+          'Cuando una mujer deja de explicarse, no es que se rinda. Es que entendió que quien quiere entender, no necesita explicaciones.',
+          'Y ese silencio no es derrota. Es la forma más madura de decir que ya no va a gastar energía en quien no la valora.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Caras vemos...',
+        title: '💭 Hay un dicho que dice: caras vemos, corazones no sabemos',
+        clips: [
+          'Hay un dicho que dice: caras vemos, corazones no sabemos. Y en el amor hay mujeres que sonríen por fuera y por dentro ya decidieron.',
+          'Sonríen, siguen su día, hacen todo normal. Pero por dentro ya tomaron la decisión de irse en silencio, sin drama.',
+          'Y cuando alguien se va así, sin pelea, sin llanto, es porque ya lloró todo mientras la relación seguía en pie.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Señales de que no te olvidó',
+        title: '😳 Dicen que hay cinco señales de que una mujer nunca te olvidó del todo',
+        clips: [
+          'Dicen que hay cinco señales de que una mujer nunca te olvidó del todo. La primera: te recuerda en fechas sin importancia.',
+          'La segunda: habla de ti sin mencionar tu nombre, pero todo el mundo sabe a quién se refiere cuando lo hace.',
+          'La tercera: guarda algo tuyo. Una foto, un mensaje, un objeto que para otros no significa nada, pero para ella es recuerdo.',
+          'La cuarta: si te ve, no evita el contacto visual. Te mira como quien aún tiene preguntas sin responder.',
+          'Y la quinta es la más clara: a veces te escribe y borra el mensaje. Porque aún quiere hablar, pero ya no sabe cómo.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Lo que ya no tolera',
+        title: '😳 El tipo de hombre que una mujer madura ya no está dispuesta a tolerar',
+        clips: [
+          'Una mujer madura ya no tolera al hombre que no sabe lo que quiere. Que llega y se va, que promete y no cumple.',
+          'Porque aprendió que el amor no es un juego. Y que quien la quiere de verdad, no la confunde con indecisiones.'
+        ]
+      },
+      {
+        textOnScreen: '💭 La noche que decidió no volver',
+        title: '💭 Lo que siente una mujer la noche que decide no volver',
+        clips: [
+          'Lo que siente una mujer la noche que decide no volver no es tristeza. Es un alivio que no había sentido en mucho tiempo.',
+          'Ya no tiene que justificar por qué se queda. Ya no tiene que esperar un cambio que nunca llegó. Solo sigue.',
+          'Y en ese silencio, encuentra paz. Porque sabe que la decisión más difícil fue también la más necesaria.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Sola y en paz',
+        title: '😳 ¿Sabes por qué algunas mujeres prefieren estar solas que mal acompañadas?',
+        clips: [
+          '¿Sabes por qué algunas mujeres prefieren estar solas que mal acompañadas? Porque aprendieron que la soledad es mejor que el desprecio.',
+          'Estar con alguien que no te valora es más solitario que estar sola. Y eso duele más que cualquier otra cosa.',
+          'La soledad bien llevada no duele. Te enseña quién eres, qué quieres y qué no estás dispuesta a tolerar.',
+          'Y una vez que aprendes eso, ya no hay relación que valga la pena si te hace sentir menos de lo que eres.',
+          'Por eso algunas eligen estar solas. No porque no encuentren a nadie. Sino porque encontraron la paz en sí mismas.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'lunes',
+    number: 'DÍA 3',
+    name: 'LUNES',
+    emoji: '🌄',
+    videos: [
+      {
+        textOnScreen: '😳 Cuando deja de esperar',
+        title: '😳 Nadie habla de lo que le pasa a una mujer cuando por fin deja de esperar',
+        clips: [
+          'Nadie habla de lo que le pasa a una mujer cuando por fin deja de esperar. No explota, no llora, solo se queda en silencio.',
+          'Y en ese silencio, empieza a reconstruirse. Ya no espera mensajes, ya no revisa el teléfono. Solo sigue adelante.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Lo que no mata...',
+        title: '💭 Hay un dicho que dice: lo que no mata, fortalece… pero en el amor duele diferente',
+        clips: [
+          'Hay un dicho que dice: lo que no mata, fortalece. Pero en el amor, hay cosas que no matan y aun así dejan cicatrices.',
+          'El dolor de una traición, de un abandono, de sentir que no fuiste suficiente. Eso no mata, pero duele como si lo hiciera.',
+          'Y lo que duele más no es la herida, es saber que pudiste evitarlo y aun así decidiste quedarte por amor.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Las tres veces que llora',
+        title: '😳 Dicen que una mujer llora tres veces por el mismo hombre… y cada vez por una razón distinta',
+        clips: [
+          'Dicen que una mujer llora tres veces por el mismo hombre. Cada vez es diferente, y cada vez aprende algo nuevo.',
+          'La primera vez llora porque se fue. La segunda, porque intentó volver y no pudo. Y la tercera es la que más duele.',
+          'La tercera vez llora porque entiende que nunca fue culpa suya. Que él no cambió porque no quiso, no porque ella fallara.',
+          'Y en ese llanto no hay rabia, no hay rencor. Hay una paz que llega cuando dejas de cargar lo que no era tuyo.',
+          'Después de esa tercera vez, ya no llora por él. Llora por ella, por todo el tiempo que perdió queriendo a quien no debía.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Cuando vuelve sin avisar',
+        title: '😳 Si él te busca después de ignorarte… esto es lo que realmente está pasando',
+        clips: [
+          'Si él te busca después de ignorarte, no es que haya cambiado. Es que extraña lo que recibía y no supo valorar.',
+          'Y si vuelves, le demuestras que puede irse y regresar sin consecuencias. Porque no te busca a ti, busca tu atención.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Amar a quien no estuvo listo',
+        title: '💭 Lo que una mujer aprende después de amar a alguien que nunca estuvo listo',
+        clips: [
+          'Lo que una mujer aprende después de amar a alguien que nunca estuvo listo es que ella nunca fue el problema.',
+          'No era que no supiera amar, es que él no sabía recibir. Y por mucho que ella diera, nunca iba a ser suficiente.',
+          'Y el aprendizaje más grande es ese: no puedes arreglar a alguien que no quiere cambiar. Solo puedes elegirte a ti.'
+        ]
+      },
+      {
+        textOnScreen: '😳 ¿Regresa o ya cerró?',
+        title: '😳 ¿Sabes qué diferencia a una mujer que regresa… de una que ya cerró el ciclo?',
+        clips: [
+          '¿Sabes qué diferencia a una mujer que regresa de una que ya cerró el ciclo? La que regresa aún tiene esperanza.',
+          'La que ya cerró, no odia, no guarda rencor. Simplemente entiende que ese capítulo ya terminó y no va a repetirlo.',
+          'Y esa es la diferencia más grande. Una vuelve porque aún cree que puede ser diferente. La otra ya sabe que no.',
+          'No hay rabia en la que cerró. Hay una paz que solo llega cuando aceptas que hay personas que no eran para siempre.',
+          'Y cuando ella decide no regresar, no es por orgullo. Es porque ya entendió que no merece repetir lo que ya sufrió.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'martes',
+    number: 'DÍA 4',
+    name: 'MARTES',
+    emoji: '🌞',
+    videos: [
+      {
+        textOnScreen: '😳 Fuerte no es no llorar',
+        title: '😳 Una mujer fuerte no es la que no llora… es la que llora y aun así sigue',
+        clips: [
+          'Una mujer fuerte no es la que no llora. Es la que llora, se levanta y sigue caminando con el dolor a cuestas.',
+          'Porque la fortaleza no es no sentir. Es sentir y decidir que el dolor no va a definir lo que viene después.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Más vale sola...',
+        title: '💭 Hay un dicho que dice: más vale sola que mal acompañada… y esto lo explica todo',
+        clips: [
+          'Hay un dicho que dice: más vale sola que mal acompañada. Y hay mujeres que lo entienden después de haberlo vivido.',
+          'Porque estar con alguien que te hace sentir menos no es mejor que estar sola. Es una condena disfrazada de compañía.',
+          'Y cuando entienden eso, dejan de buscar pareja y empiezan a buscarse a sí mismas. Y ahí es cuando todo cambia.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Cinco cosas que no pide',
+        title: '😳 Dicen que una mujer necesita cinco cosas para ser feliz en una relación… y casi nunca las pide en voz alta',
+        clips: [
+          'Dicen que una mujer necesita cinco cosas para ser feliz en una relación. Y casi nunca las pide en voz alta, solo espera.',
+          'La primera es que la escuchen de verdad. No que oigan, que escuchen. Esa es la diferencia entre estar y conectar.',
+          'La segunda es que la elijan. Que no haya dudas, que no haya indecisión. Saber que es la primera opción, no la de repuesto.',
+          'La tercera es sentir seguridad. No celos ni control, sino saber que estás en un lugar donde no tienes que rogar cariño.',
+          'Y las dos últimas son las más simples y las más difíciles: respeto y compañía. Con eso, el resto llega o se construye.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Lo que él no entiende',
+        title: '😳 Lo que un hombre nunca entiende hasta que la pierde para siempre',
+        clips: [
+          'Lo que un hombre nunca entiende hasta que la pierde es que ella no se fue por otra persona. Se fue por las migajas.',
+          'Se fue porque pidió lo mínimo y no lo recibió. Y cuando se fue, llevó todo lo que él nunca supo valorar.'
+        ]
+      },
+      {
+        textOnScreen: '💭 La noche que dejó de esperar',
+        title: '💭 La noche que una mujer decide que ya no va a seguir esperando… algo cambia para siempre',
+        clips: [
+          'La noche que una mujer decide que ya no va a seguir esperando, algo cambia para siempre. No es rencor, es claridad.',
+          'Entiende que el amor no se ruega, y que quien quiere estar, está sin excusas. Ahí empieza su verdadera paz.',
+          'Y esa noche, sin darse cuenta, se convierte en la primera noche del resto de su vida. La que la cambia todo.'
+        ]
+      },
+      {
+        textOnScreen: '😳 ¿Por qué lo recuerda?',
+        title: '😳 ¿Sabes qué hace que una mujer recuerde a alguien que ya debería haber olvidado?',
+        clips: [
+          '¿Sabes qué hace que una mujer recuerde a alguien que ya debería haber olvidado? No es el amor, es la duda.',
+          'La duda de si él realmente la quiso. La duda de si se fue por miedo o por falta de interés. Esa es la que duele.',
+          'Y mientras tenga esa duda, no va a olvidar. Porque la mente necesita respuestas para poder cerrar.',
+          'Pero el día que entiende que la respuesta no importa, que la única verdad es que él se fue y ella sigue, todo cambia.',
+          'Y en ese momento, sin buscarlo, lo olvida. Porque las preguntas sin respuesta dejan de doler cuando aprendes a vivir con ellas.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'miercoles',
+    number: 'DÍA 5',
+    name: 'MIÉRCOLES',
+    emoji: '🌤️',
+    videos: [
+      {
+        textOnScreen: '😳 Dejó de fingir',
+        title: '😳 No es que ella cambió… es que dejó de fingir que todo estaba bien',
+        clips: [
+          'No es que ella cambió. Es que dejó de fingir que todo estaba bien cuando no lo estaba. Y eso no es cambio, es verdad.',
+          'La mujer que te mostró su silencio no se volvió fría. Solo dejó de esconder lo que siempre sintió pero nunca dijo.'
+        ]
+      },
+      {
+        textOnScreen: '💭 El tiempo pone a cada quien...',
+        title: '💭 Hay un dicho que dice: el tiempo pone a cada quien en su lugar… y en el amor eso duele',
+        clips: [
+          'Hay un dicho que dice: el tiempo pone a cada quien en su lugar. Y en el amor, el tiempo suele ser un juez implacable.',
+          'Porque hay relaciones que se deshacen solas sin que nadie las toque. Solo el tiempo muestra que no debieron empezar.',
+          'Y duele, sí. Pero también enseña que no todas las personas están para quedarse, y eso está bien.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Cinco dolores que solo ella entiende',
+        title: '😳 Dicen que hay cinco tipos de dolor que solo una mujer que amó de verdad puede entender',
+        clips: [
+          'Dicen que hay cinco dolores que solo una mujer que amó de verdad entiende. No son físicos, pero duelen igual.',
+          'El primero: amar a alguien que no sabe recibir amor. Dar todo y sentir que nunca es suficiente para él.',
+          'El segundo: ver cómo se va sin entender por qué. Y quedarse con las ganas de preguntar, pero sin hacerlo.',
+          'El tercero: saber que no volverá, aunque aún lo esperes. El cuarto: despedirte en silencio.',
+          'Y el quinto es el más difícil: entender que el amor no siempre es correspondido. Y que duele más que cualquier otra cosa.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Sonríe más sin ti',
+        title: '😳 La razón por la que ella sonríe más desde que ya no estás… no es lo que crees',
+        clips: [
+          'La razón por la que ella sonríe más desde que ya no estás no es porque te olvidó. Es porque dejó de cargar tu indiferencia.',
+          'Y eso no es felicidad fingida. Es la paz de no tener que rogar por atención a quien nunca supo darla.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Empezar de cero',
+        title: '💭 Lo que nadie ve cuando una mujer decide empezar de cero sola',
+        clips: [
+          'Lo que nadie ve cuando una mujer decide empezar de cero sola no es el miedo. Es la valentía de soltar todo lo conocido.',
+          'No es fácil. Pero ella sabe que estar en un lugar donde no la valoran es peor que empezar sin nada.',
+          'Y aunque nadie lo vea, ella lo sabe. Que no está huyendo. Está construyendo algo nuevo sobre sus propias bases.'
+        ]
+      },
+      {
+        textOnScreen: '😳 La atención que le faltaba',
+        title: '😳 ¿Sabes qué pasa en la mente de una mujer cuando alguien nuevo le presta la atención que le faltaba?',
+        clips: [
+          '¿Sabes qué pasa en la mente de una mujer cuando alguien nuevo le presta la atención que le faltaba? No es amor inmediato.',
+          'Es confusión. Porque no sabe si es real o es solo el vacío que dejó el que no supo darle lo mínimo.',
+          'Y mientras duda, se pregunta: ¿esto es lo que siempre merecí? ¿O solo es un espejismo de lo que quiero creer?',
+          'Pero con el tiempo aprende a distinguir. La atención sincera se siente diferente. No aprieta, no condiciona, solo está.',
+          'Y cuando lo reconoce, ya no duda. Porque sabe que merece eso y más. Y no va a conformarse con menos esta vez.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'jueves',
+    number: 'DÍA 6',
+    name: 'JUEVES',
+    emoji: '🌇',
+    videos: [
+      {
+        textOnScreen: '😳 Lo que ella recuerda',
+        title: '😳 Hay algo que una mujer recuerda de ti mucho después de que todo terminó',
+        clips: [
+          'Hay algo que una mujer recuerda de ti mucho después de que todo terminó. No lo que hiciste, sino cómo la hiciste sentir.',
+          'Y eso es lo que perdura. Las acciones se olvidan, pero la forma en que la trataste se queda grabado en su memoria.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Dime con quién andas...',
+        title: '💭 Hay un dicho que dice: dime con quién andas y te diré quién eres… en el amor también aplica',
+        clips: [
+          'Hay un dicho que dice: dime con quién andas y te diré quién eres. Y en las relaciones, eso se cumple siempre.',
+          'Porque la persona que elijes para compartir tu vida dice mucho de ti. De lo que valoras, de lo que toleras.',
+          'Y si eliges a alguien que no te valora, quizás es hora de preguntarte por qué estás aceptando menos de lo que mereces.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Las cinco veces que perdona',
+        title: '😳 Dicen que una mujer perdona cinco veces antes de irse para siempre sin mirar atrás',
+        clips: [
+          'Dicen que una mujer perdona cinco veces antes de irse. Cada perdón se lleva un pedazo de ella que no vuelve.',
+          'La primera vez perdona porque cree que fue un error. La segunda, porque confía en que va a cambiar.',
+          'La tercera, porque ya invirtió demasiado tiempo. La cuarta, por miedo a estar sola y empezar de nuevo.',
+          'Y la quinta ya no es perdón. Es aceptación. Entiende que él no va a cambiar y que el cambio tiene que venir de ella.',
+          'Y después de ese quinto perdón, no se va con odio. Se va con la certeza de que hizo todo lo que pudo.'
+        ]
+      },
+      {
+        textOnScreen: '😳 El instante exacto',
+        title: '😳 El momento exacto en que una mujer decide que ya no vale la pena seguir intentando',
+        clips: [
+          'El momento exacto en que una mujer decide que ya no vale la pena no es una pelea. Es un silencio que no esperaba.',
+          'En ese instante, algo se rompe. Y ya no hay vuelta atrás. Porque quien decide en silencio, ya lo había pensado mucho antes.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Amar a quien no sabe recibir',
+        title: '💭 Lo que nadie te dice sobre amar a alguien que no sabe recibir amor',
+        clips: [
+          'Lo que nadie te dice sobre amar a alguien que no sabe recibir amor es que te vas a desgastar intentándolo.',
+          'Por mucho que des, él no va a saber cómo tomar lo que le ofreces. Porque no es que no quiera, es que no puede.',
+          'Y ahí aprendes que el amor no es solo dar. También es elegir a quien sepa recibir lo que tienes para ofrecer.'
+        ]
+      },
+      {
+        textOnScreen: '😳 ¿Qué extraña una mujer?',
+        title: '😳 ¿Sabes qué es lo que más extraña una mujer de una relación que terminó… aunque no lo admita?',
+        clips: [
+          '¿Sabes qué es lo que más extraña una mujer de una relación que terminó? No a él. Extraña la versión de ella que era con él.',
+          'Extraña cómo se sentía cuando todo era nuevo, cuando el futuro parecía prometedor y las dudas no existían.',
+          'Extraña la certeza de tener a alguien. No a esa persona en particular, sino la sensación de no estar sola.',
+          'Y cuando entiende eso, deja de extrañarlo. Porque se da cuenta que no lo extraña a él, extraña lo que él representaba.',
+          'Y ese es el primer paso para soltar. Entender que lo que extrañas no era real, solo era una idea que tú misma creaste.'
+        ]
+      }
+    ]
+  },
+  {
+    id: 'viernes',
+    number: 'DÍA 7',
+    name: 'VIERNES',
+    emoji: '🌆',
+    videos: [
+      {
+        textOnScreen: '😳 Cuando sana no lo anuncia',
+        title: '😳 Una mujer que ya sanó no lo anuncia… simplemente ya no reacciona igual',
+        clips: [
+          'Una mujer que ya sanó no lo anuncia. No publica frases, no hace indirectas. Solo sigue su vida sin mirar atrás.',
+          'Y su mayor señal de sanación es la indiferencia. Ya no le duele, ya no le importa. Simplemente ya no reacciona igual.'
+        ]
+      },
+      {
+        textOnScreen: '💭 Agua que no has de beber...',
+        title: '💭 Hay un dicho que dice: agua que no has de beber, déjala correr… y hay mujeres que lo aprendieron tarde',
+        clips: [
+          'Hay un dicho que dice: agua que no has de beber, déjala correr. Y hay mujeres que aprenden tarde a soltar lo que no es suyo.',
+          'Porque se aferran a relaciones que ya no tienen futuro. A hombres que ya no están, a promesas que no se cumplieron.',
+          'Y cuando al fin sueltan, se dan cuenta de que debieron hacerlo mucho antes. Pero más vale tarde que nunca.'
+        ]
+      },
+      {
+        textOnScreen: '😳 Cinco momentos que la definen',
+        title: '😳 Dicen que hay cinco momentos en la vida de una mujer que la definen para siempre',
+        clips: [
+          'Dicen que hay cinco momentos en la vida de una mujer que la definen para siempre. Y no siempre son los que imaginas.',
+          'El primero: cuando elige su camino por primera vez sin pedir permiso. Ahí nace su autonomía, sin mirar atrás.',
+          'El segundo: la primera vez que elige su propia paz sobre cualquier relación, aunque eso signifique alejarse de lo conocido.',
+          'El tercero y cuarto son silenciosos: cuando se reconstruye a solas y cuando se da cuenta de que basta con ella misma.',
+          'Y el quinto, el más importante, es cuando se mira al espejo y se acepta como es, sin filtros ni arrepentimientos.'
+        ]
+      },
+      {
+        textOnScreen: '😳 La primera vez que la tratan bien',
+        title: '😳 Lo que una mujer siente cuando alguien la trata bien por primera vez después de tanto daño',
+        clips: [
+          'Lo que una mujer siente cuando alguien la trata bien por primera vez después de tanto daño es desconfianza. No cree que sea real.',
+          'Pero cuando se da cuenta de que es genuino, llora. No de tristeza, sino porque nunca supo que podía sentirse así de segura.'
+        ]
+      },
+      {
+        textOnScreen: '💭 No volvieron aunque los extrañaban',
+        title: '💭 Lo que nadie cuenta de las mujeres que eligieron no volver… aunque los extrañaran',
+        clips: [
+          'Lo que nadie cuenta de las mujeres que eligieron no volver es que sí los extrañaron. Pero extrañar no es suficiente.',
+          'Porque aprendieron que el amor no es solo sentir. Es también elegir bien. Y a veces elegir bien significa no volver.',
+          'Y aunque duela, saben que hicieron lo correcto. Porque hay personas que son mejor recordadas que revisitadas.'
+        ]
+      },
+      {
+        textOnScreen: '😳 ¿Qué hombre logra abrir su corazón?',
+        title: '😳 ¿Sabes qué tipo de hombre hace que una mujer que ya cerró su corazón… vuelva a abrirlo?',
+        clips: [
+          '¿Sabes qué tipo de hombre hace que una mujer que ya cerró su corazón vuelva a abrirlo? No el que promete, el que cumple.',
+          'El que no la confunde con dudas. El que está presente sin necesidad de que ella lo pida o de que lo tenga que rogar.',
+          'El que entiende que ella no necesita que la salven, sino que la acompañen sin juzgar ni presionar ni exigirle más.',
+          'Y poco a poco, sin darse cuenta, ella vuelve a confiar. No porque él sea perfecto, sino porque es constante y sincero.',
+          'Y cuando eso pasa, el corazón que ella creía cerrado se abre. No por magia, sino porque por fin encontró seguridad real.'
+        ]
+      }
+    ]
+  }
+];
+
+// ============ ESTADO ============
+let state = {
+  dayCompleted: {}, // { sabado: true, ... }
+  videoCompleted: {}, // { 'sabado_0': true, ... }
+  clipCompleted: {}, // { 'sabado_0_1': true, ... }
+  notes: {}, // { sabado: 'texto...' }
+  theme: 'dark',
+  filter: 'all'
+};
+
+// ============ PERSISTENCIA ============
+function saveState() {
+  localStorage.setItem('videoPlannerState', JSON.stringify(state));
+}
+
+function loadState() {
+  const saved = localStorage.getItem('videoPlannerState');
+  if (saved) {
+    state = { ...state, ...JSON.parse(saved) };
+  }
+}
+
+// ============ CÁLCULOS ============
+function getDayStats(dayId) {
+  const day = DAYS_DATA.find(d => d.id === dayId);
+  let totalClips = 0, doneClips = 0;
+  let totalVideos = day.videos.length, doneVideos = 0;
+  
+  day.videos.forEach((v, vi) => {
+    let videoDone = true;
+    v.clips.forEach((c, ci) => {
+      totalClips++;
+      const key = `${dayId}_${vi}_${ci}`;
+      if (state.clipCompleted[key]) {
+        doneClips++;
+      } else {
+        videoDone = false;
+      }
+    });
+    // Video completo si todos sus clips están completos
+    const vKey = `${dayId}_${vi}`;
+    if (state.videoCompleted[vKey] || videoDone) {
+      doneVideos++;
+    }
+  });
+  
+  return { totalClips, doneClips, totalVideos, doneVideos };
+}
+
+function getGlobalStats() {
+  let totalDays = DAYS_DATA.length, doneDays = 0;
+  let totalVideos = 0, doneVideos = 0;
+  let totalClips = 0, doneClips = 0;
+  
+  DAYS_DATA.forEach(day => {
+    const stats = getDayStats(day.id);
+    totalVideos += stats.totalVideos;
+    doneVideos += stats.doneVideos;
+    totalClips += stats.totalClips;
+    doneClips += stats.doneClips;
+    if (state.dayCompleted[day.id]) doneDays++;
+  });
+  
+  return { totalDays, doneDays, totalVideos, doneVideos, totalClips, doneClips };
+}
+
+// ============ RENDER ============
+function renderDays() {
+  const grid = document.getElementById('daysGrid');
+  grid.innerHTML = '';
+  
+  DAYS_DATA.forEach(day => {
+    const stats = getDayStats(day.id);
+    const isCompleted = state.dayCompleted[day.id];
+    const percent = stats.totalClips > 0 ? Math.round((stats.doneClips / stats.totalClips) * 100) : 0;
+    
+    // Filtro
+    if (state.filter === 'completed' && !isCompleted) return;
+    if (state.filter === 'pending' && (stats.doneClips > 0 || isCompleted)) return;
+    if (state.filter === 'inprogress' && (stats.doneClips === 0 || isCompleted)) return;
+    
+    const card = document.createElement('div');
+    card.className = 'day-card' + (isCompleted ? ' completed' : '');
+    card.innerHTML = `
+      <div class="day-header">
+        <div class="day-info">
+          <div class="day-number">${day.number}</div>
+          <div class="day-name">${day.name}</div>
+        </div>
+        <div class="day-emoji">${day.emoji}</div>
+        <button class="day-complete-btn ${isCompleted ? 'checked' : ''}" 
+                onclick="event.stopPropagation(); toggleDayComplete('${day.id}')" 
+                title="Marcar día completo">
+          ✓
+        </button>
+      </div>
+      <div class="day-stats">
+        <div class="day-progress-text">
+          <strong>${stats.doneVideos}/${stats.totalVideos}</strong> videos
+        </div>
+        <div class="day-mini-progress">
+          <div class="day-mini-progress-fill" style="width: ${percent}%"></div>
+        </div>
+        <div class="day-progress-text">${percent}%</div>
+      </div>
+    `;
+    card.onclick = () => openDay(day.id);
+    grid.appendChild(card);
+  });
+  
+  updateStats();
+}
+
+function updateStats() {
+  const stats = getGlobalStats();
+  document.getElementById('statDays').textContent = `${stats.doneDays}/${stats.totalDays}`;
+  document.getElementById('statVideos').textContent = `${stats.doneVideos}/${stats.totalVideos}`;
+  document.getElementById('statClips').textContent = `${stats.doneClips}/${stats.totalClips}`;
+  
+  const percent = stats.totalClips > 0 ? Math.round((stats.doneClips / stats.totalClips) * 100) : 0;
+  document.getElementById('statPercent').textContent = `${percent}%`;
+  document.getElementById('progressText').textContent = `${percent}%`;
+  document.getElementById('progressFill').style.width = `${percent}%`;
+}
+
+// ============ MODAL ============
+function openDay(dayId) {
+  const day = DAYS_DATA.find(d => d.id === dayId);
+  const stats = getDayStats(dayId);
+  const modal = document.getElementById('modal');
+  
+  let videosHTML = '';
+  day.videos.forEach((v, vi) => {
+    const vKey = `${dayId}_${vi}`;
+    const isVideoDone = state.videoCompleted[vKey] || 
+      v.clips.every((c, ci) => state.clipCompleted[`${dayId}_${vi}_${ci}`]);
+    
+    let clipsHTML = '';
+    v.clips.forEach((c, ci) => {
+      const cKey = `${dayId}_${vi}_${ci}`;
+      const isClipDone = state.clipCompleted[cKey];
+      clipsHTML += `
+        <div class="clip-item ${isClipDone ? 'completed' : ''}" onclick="toggleClip('${dayId}', ${vi}, ${ci})">
+          <button class="clip-check ${isClipDone ? 'checked' : ''}">✓</button>
+          <div class="clip-text">"${c}"</div>
+          <div class="clip-counter">CLIP ${ci + 1}</div>
+        </div>
+      `;
+    });
+    
+    videosHTML += `
+      <div class="video-item ${isVideoDone ? 'completed' : ''}">
+        <div class="video-header">
+          <div class="video-title-block">
+            <div class="video-number">📹 VIDEO ${vi + 1} — ${v.clips.length} clips</div>
+            <div class="video-text-on-screen">${v.textOnScreen}</div>
+            <div class="video-full-title">${v.title}</div>
+          </div>
+          <button class="video-check ${isVideoDone ? 'checked' : ''}" 
+                  onclick="toggleVideo('${dayId}', ${vi})" 
+                  title="Marcar video completo">
+            ✓
+          </button>
+        </div>
+        <div class="clips-container">${clipsHTML}</div>
+      </div>
+    `;
+  });
+  
+  modal.innerHTML = `
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-header">
+      <h2>${day.emoji} ${day.number} — ${day.name}</h2>
+      <p>${stats.doneVideos} de ${stats.totalVideos} videos • ${stats.doneClips} de ${stats.totalClips} clips</p>
+    </div>
+    ${videosHTML}
+    <div class="notes-section">
+      <label>📝 Notas del día</label>
+      <textarea id="dayNotes" placeholder="Escribe tus ideas, recordatorios o reflexiones...">${state.notes[dayId] || ''}</textarea>
+    </div>
+  `;
+  
+  document.getElementById('modalOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  // Guardar notas en tiempo real
+  document.getElementById('dayNotes').addEventListener('input', (e) => {
+    state.notes[dayId] = e.target.value;
+    saveState();
+  });
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function closeModalOnBg(e) {
+  if (e.target.id === 'modalOverlay') closeModal();
+}
+
+// ============ ACCIONES ============
+function toggleDayComplete(dayId) {
+  state.dayCompleted[dayId] = !state.dayCompleted[dayId];
+  saveState();
+  renderDays();
+  if (state.dayCompleted[dayId]) {
+    showToast('🎉 ¡Día completado!');
+    launchConfetti();
+  }
+}
+
+function toggleVideo(dayId, vi) {
+  const vKey = `${dayId}_${vi}`;
+  const isDone = state.videoCompleted[vKey];
+  state.videoCompleted[vKey] = !isDone;
+  
+  // Marcar/desmarcar todos los clips del video
+  const day = DAYS_DATA.find(d => d.id === dayId);
+  day.videos[vi].clips.forEach((c, ci) => {
+    const cKey = `${dayId}_${vi}_${ci}`;
+    state.clipCompleted[cKey] = state.videoCompleted[vKey];
+  });
+  
+  saveState();
+  openDay(dayId);
+  renderDays();
+}
+
+function toggleClip(dayId, vi, ci) {
+  const cKey = `${dayId}_${vi}_${ci}`;
+  state.clipCompleted[cKey] = !state.clipCompleted[cKey];
+  
+  // Si todos los clips están hechos, marcar video
+  const day = DAYS_DATA.find(d => d.id === dayId);
+  const allDone = day.videos[vi].clips.every((c, i) => 
+    i === ci ? state.clipCompleted[cKey] : state.clipCompleted[`${dayId}_${vi}_${i}`]
+  );
+  state.videoCompleted[`${dayId}_${vi}`] = allDone;
+  
+  saveState();
+  openDay(dayId);
+  renderDays();
+}
+
+function setFilter(filter) {
+  state.filter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.filter === filter);
+  });
+  renderDays();
+}
+
+function toggleTheme() {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  document.body.classList.toggle('light', state.theme === 'light');
+  saveState();
+}
+
+function resetAll() {
+  if (confirm('⚠️ ¿Seguro que quieres reiniciar TODO el progreso? Esta acción no se puede deshacer.')) {
+    state = {
+      dayCompleted: {},
+      videoCompleted: {},
+      clipCompleted: {},
+      notes: {},
+      theme: state.theme,
+      filter: 'all'
+    };
+    saveState();
+    renderDays();
+    showToast('🔄 Progreso reiniciado');
+  }
+}
+
+function exportData() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `planificador_videos_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 Datos exportados');
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        state = { ...state, ...data };
+        saveState();
+        renderDays();
+        showToast('📥 Datos importados correctamente');
+      } catch (err) {
+        alert('❌ Error al importar el archivo');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============ EFECTOS ============
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
+function launchConfetti() {
+  const colors = ['#e94560', '#f39c12', '#00d9a3', '#3498db', '#9b59b6'];
+  for (let i = 0; i < 50; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * 100 + 'vw';
+    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+    confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+    document.body.appendChild(confetti);
+    setTimeout(() => confetti.remove(), 4000);
+  }
+}
+
+// ============ INIT ============
+loadState();
+document.body.classList.toggle('light', state.theme === 'light');
+renderDays();
+
+// ESC para cerrar modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
