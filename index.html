@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Planificador de Videos - 7 Días</title>
+<title>🎬 Planificador de Videos - 7 Días</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
   
@@ -37,7 +37,6 @@
     overflow-x: hidden;
   }
   
-  /* Fondo animado */
   body::before {
     content: '';
     position: fixed;
@@ -57,7 +56,6 @@
   
   .container { max-width: 1400px; margin: 0 auto; }
   
-  /* HEADER */
   header {
     background: var(--card-bg);
     backdrop-filter: blur(20px);
@@ -119,7 +117,6 @@
     box-shadow: 0 8px 20px rgba(233, 69, 96, 0.4);
   }
   
-  /* STATS BAR */
   .stats-bar {
     background: var(--card-bg);
     backdrop-filter: blur(20px);
@@ -182,7 +179,6 @@
     100% { transform: translateX(100%); }
   }
   
-  /* FILTROS */
   .filters {
     display: flex;
     gap: 10px;
@@ -204,7 +200,6 @@
     border-color: transparent;
   }
   
-  /* GRID DE DÍAS */
   .days-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -338,7 +333,6 @@
     transition: width 0.5s ease;
   }
   
-  /* MODAL */
   .modal-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -541,7 +535,6 @@
     white-space: nowrap;
   }
   
-  /* NOTAS */
   .notes-section {
     margin-top: 20px;
     padding: 16px;
@@ -573,7 +566,6 @@
     border-color: var(--accent);
   }
   
-  /* CONFETTI */
   .confetti {
     position: fixed;
     width: 10px;
@@ -587,7 +579,6 @@
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
   }
   
-  /* TOAST */
   .toast {
     position: fixed;
     bottom: 30px;
@@ -604,7 +595,6 @@
   }
   .toast.show { transform: translateX(0); }
   
-  /* RESPONSIVE */
   @media (max-width: 600px) {
     header { padding: 20px; }
     .header-title h1 { font-size: 1.5rem; }
@@ -669,22 +659,19 @@
   
 </div>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
   <div class="modal" id="modal"></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ DATOS (DÍAS REORDENADOS) ============
-// Viernes original → Sábado, Sábado → Domingo, etc.
+// ============ DATOS (ORDEN CORREGIDO: VIERNES → JUEVES) ============
 const DAYS_DATA = [
   {
-    id: 'sabado',
+    id: 'viernes',
     number: 'DÍA 1',
-    name: 'SÁBADO',
+    name: 'VIERNES',
     emoji: '🌅',
     videos: [
       {
@@ -746,9 +733,9 @@ const DAYS_DATA = [
     ]
   },
   {
-    id: 'domingo',
+    id: 'sabado',
     number: 'DÍA 2',
-    name: 'DOMINGO',
+    name: 'SÁBADO',
     emoji: '☀️',
     videos: [
       {
@@ -810,9 +797,9 @@ const DAYS_DATA = [
     ]
   },
   {
-    id: 'lunes',
+    id: 'domingo',
     number: 'DÍA 3',
-    name: 'LUNES',
+    name: 'DOMINGO',
     emoji: '🌄',
     videos: [
       {
@@ -874,9 +861,9 @@ const DAYS_DATA = [
     ]
   },
   {
-    id: 'martes',
+    id: 'lunes',
     number: 'DÍA 4',
-    name: 'MARTES',
+    name: 'LUNES',
     emoji: '🌞',
     videos: [
       {
@@ -938,9 +925,9 @@ const DAYS_DATA = [
     ]
   },
   {
-    id: 'miercoles',
+    id: 'martes',
     number: 'DÍA 5',
-    name: 'MIÉRCOLES',
+    name: 'MARTES',
     emoji: '🌤️',
     videos: [
       {
@@ -1002,9 +989,9 @@ const DAYS_DATA = [
     ]
   },
   {
-    id: 'jueves',
+    id: 'miercoles',
     number: 'DÍA 6',
-    name: 'JUEVES',
+    name: 'MIÉRCOLES',
     emoji: '🌇',
     videos: [
       {
@@ -1066,9 +1053,9 @@ const DAYS_DATA = [
     ]
   },
   {
-    id: 'viernes',
+    id: 'jueves',
     number: 'DÍA 7',
-    name: 'VIERNES',
+    name: 'JUEVES',
     emoji: '🌆',
     videos: [
       {
@@ -1133,10 +1120,10 @@ const DAYS_DATA = [
 
 // ============ ESTADO ============
 let state = {
-  dayCompleted: {}, // { sabado: true, ... }
-  videoCompleted: {}, // { 'sabado_0': true, ... }
-  clipCompleted: {}, // { 'sabado_0_1': true, ... }
-  notes: {}, // { sabado: 'texto...' }
+  dayCompleted: {},
+  videoCompleted: {},
+  clipCompleted: {},
+  notes: {},
   theme: 'dark',
   filter: 'all'
 };
@@ -1170,7 +1157,6 @@ function getDayStats(dayId) {
         videoDone = false;
       }
     });
-    // Video completo si todos sus clips están completos
     const vKey = `${dayId}_${vi}`;
     if (state.videoCompleted[vKey] || videoDone) {
       doneVideos++;
@@ -1207,7 +1193,6 @@ function renderDays() {
     const isCompleted = state.dayCompleted[day.id];
     const percent = stats.totalClips > 0 ? Math.round((stats.doneClips / stats.totalClips) * 100) : 0;
     
-    // Filtro
     if (state.filter === 'completed' && !isCompleted) return;
     if (state.filter === 'pending' && (stats.doneClips > 0 || isCompleted)) return;
     if (state.filter === 'inprogress' && (stats.doneClips === 0 || isCompleted)) return;
@@ -1316,7 +1301,6 @@ function openDay(dayId) {
   document.getElementById('modalOverlay').classList.add('active');
   document.body.style.overflow = 'hidden';
   
-  // Guardar notas en tiempo real
   document.getElementById('dayNotes').addEventListener('input', (e) => {
     state.notes[dayId] = e.target.value;
     saveState();
@@ -1348,7 +1332,6 @@ function toggleVideo(dayId, vi) {
   const isDone = state.videoCompleted[vKey];
   state.videoCompleted[vKey] = !isDone;
   
-  // Marcar/desmarcar todos los clips del video
   const day = DAYS_DATA.find(d => d.id === dayId);
   day.videos[vi].clips.forEach((c, ci) => {
     const cKey = `${dayId}_${vi}_${ci}`;
@@ -1364,7 +1347,6 @@ function toggleClip(dayId, vi, ci) {
   const cKey = `${dayId}_${vi}_${ci}`;
   state.clipCompleted[cKey] = !state.clipCompleted[cKey];
   
-  // Si todos los clips están hechos, marcar video
   const day = DAYS_DATA.find(d => d.id === dayId);
   const allDone = day.videos[vi].clips.every((c, i) => 
     i === ci ? state.clipCompleted[cKey] : state.clipCompleted[`${dayId}_${vi}_${i}`]
@@ -1469,7 +1451,6 @@ loadState();
 document.body.classList.toggle('light', state.theme === 'light');
 renderDays();
 
-// ESC para cerrar modal
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeModal();
 });
